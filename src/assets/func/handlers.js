@@ -5,9 +5,11 @@ const { dc } = require("./clients");
 const { 
   log, 
   mongo,
+  } = require("./misc");
+const {
   sendLETData,
-  revealLETAnswer
-} = require("./misc");
+  revealLETAnswer,
+} = require("./main");
 const { model } = require("./../db/models/user");
 
 exports.connectDB = async () => {
@@ -36,7 +38,7 @@ exports.connectDC = async () => {
 
       try {
 
-        //await sendLETData();
+        await sendLETData();
         await revealLETAnswer();
 
         setInterval(async () => {

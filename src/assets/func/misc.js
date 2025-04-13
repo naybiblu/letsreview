@@ -3,14 +3,8 @@ const axios = require("axios");
 const mongo = require("mongoose");
 const { 
   MONGO_URL: url,
-  GSHEET_KEY: key,
-  GSHEET_QUESTIONBANKID: id,
-  DISCORD_PUBPOSTS_CHANNELID: pubPostsChanId,
-  FB_PAGEID: pageId,
-  FB_TOKEN: fbToken
 } = process.env;
 const { readdirSync } = require("fs");
-const { dc } = require("./clients");
 
 exports.log = { 
 
@@ -208,7 +202,26 @@ exports.fancyText = (text, type) => {
 
   return output;
 
-}
+};
+
+exports.uniqByKeepFirst = (a, key) => {
+  let seen = new Set();
+  return a.filter(item => {
+      let k = key(item);
+      return seen.has(k) ? false : seen.add(k);
+  });
+};
+
+
+exports.uniqByKeepLast = (a, key) => {
+
+  return [
+      ...new Map(
+          a.map(x => [key(x), x])
+      ).values()
+  ];
+
+};
 
 exports.mongo = {
 
@@ -231,292 +244,5 @@ exports.mongo = {
         }, 2000);
 
     }
-
-};
-
-exports.sendMessage = async (channelId, message) => {
-
-  dc.channels.fetch(channelId)
-    .then(channel => channel.send(message));
-
-};
-
-exports.deleteMessage = async(channelId, messageId) => {
-
-  dc.channels.fetch(channelId)
-    .then(channel => channel.messages.fetch())
-    .then(messages => {
-
-      if (!messageId) messages.forEach(async message => {
-        await messages.delete(message.id);
-      });
-      else messages.first().channel.messages.delete(messageId);
-
-  });
-
-};
-
-exports.getMessage = async (channelId) => {
-
-  return dc.channels.fetch(channelId)
-    .then(channel => channel.messages.fetch({ limit: 1 }))
-    .then(messages => {
-      return messages.first();
-    });
-
-};
-
-exports.getMessageWithTitle = async (text, channelId) => {
-
-  return dc.channels.fetch(channelId)
-    .then(channel => channel.messages.fetch())
-    .then(messages => {
-
-      let message = {};
-      let count = 0;
-
-      messages.forEach(msg => {
-
-        if (msg.embeds.length > 0 && msg.embeds[0].title && msg.embeds[0].title.includes(text)) {
-
-          message = msg; 
-          count++;
-
-        }
-
-      });
-
-      return {
-        data: message,
-        count: count
-      };
-
-    });
-
-};
-
-exports.getSimilarFooterCount = async (footerText, channelId) => {
-
-  return dc.channels.fetch(channelId)
-    .then(channel => channel.messages.fetch({ limit: 1 }))
-    .then(messages => {
-
-      let count = 0;
-
-      messages.forEach(message => {
-
-        if (message.embeds.length > 0 && message.embeds[0].footer && message.embeds[0].footer.text === footerText) count++;
-      
-      });
-
-      return count;
-    
-    });
-
-};
-
-exports.getFooterText = async () => {
-
-  return dc.channels.fetch(weatherChanId)
-    .then(channel => channel.messages.fetch({ limit: 1 }))
-    .then(messages => {
-
-      return messages.first().embeds[0].footer.text;
-
-    });
-
-};
-
-exports.publishFBPost = async (pageId, text, photoURL) => {
-
-  let post;
-
-  if (photoURL) post = await axios.post(`https://graph.facebook.com/v21.0/${pageId}/photos`, {
-    message: text,
-    access_token: fbToken,
-    url: photoURL
-  });
-  else post = await axios.post(`https://graph.facebook.com/v21.0/${pageId}/feed`, {
-    message: text,
-    access_token: fbToken
-  });
-
-  return photoURL ? post?.data.id : post?.data.id.split("_")[1];
-
-};
-
-exports.getFBComments = async (pageId, postId) => {
-
-  let refinedComments = [];
-  let comments = await axios.get(`https://graph.facebook.com/v21.0/${pageId}_${postId}/comments?access_token=${fbToken}`);
-  comments?.data.data.forEach(comment => {
-
-    if (!comment.from) refinedComments.push(comment);
-
-  });
-
-  return refinedComments;
-
-};
-
-exports.publishFBComment = async (pageId, postId, text, commentId) => {
-
-  let comment;
-  
-  if (!commentId) comment = await axios.post(`https://graph.facebook.com/v21.0/${pageId}_${postId}/comments`, {
-    message: text,
-    access_token: fbToken
-  });
-  else comment = await axios.post(`https://graph.facebook.com/v21.0/${postId}_${commentId}/comments`, {
-    message: text,
-    access_token: fbToken
-  });
-
-  return comment?.data;
-
-};
-
-exports.getLETData = async (getAll = false) => {
-
-  const {
-    getRandomInt,
-    getAccurateDate
-  } = this;
-  let subjectMatter;
-  let photo;
-  const photoArray = [
-    "https://preview.redd.it/lets-review-online-assets-v0-anlkpkwx6g1e1.jpg?width=3375&format=pjpg&auto=webp&s=9709231d0be766de0e068c0f447d456ea96381a4",
-    "https://preview.redd.it/lets-review-online-assets-v0-5y7tzkwx6g1e1.jpg?width=3375&format=pjpg&auto=webp&s=ab0d0ac1e4814493772a40219916dae226769cef",
-    "https://preview.redd.it/lets-review-online-assets-v0-w0sj0axx6g1e1.jpg?width=3375&format=pjpg&auto=webp&s=f17de3af54bd5206ef3838ea16154f12eab7741b",
-    "https://preview.redd.it/lets-review-online-assets-v0-48izi8xx6g1e1.jpg?width=3375&format=pjpg&auto=webp&s=6706ad9cb44e670bba6064eb92cf431a9bd536de",
-    "https://preview.redd.it/lets-review-online-assets-v0-dt05j6xx6g1e1.jpg?width=3375&format=pjpg&auto=webp&s=229cedad814124ba39126897e106a5f2109b6dac",
-    "https://preview.redd.it/lets-review-online-assets-v0-iujb06xx6g1e1.jpg?width=3375&format=pjpg&auto=webp&s=70579c42df01ec2abd21067789fdadf4ae151a93"
-  ];
-  const subMatArray = [
-    "GenEd",
-    "ProfEd",
-    "Maj"
-  ];
-
-  switch (getAccurateDate("dayWord")) {
-
-    case "Monday": photo = photoArray[0]; subjectMatter = subMatArray[0]; break;
-    case "Tuesday": photo = photoArray[1]; subjectMatter = subMatArray[0]; break;
-    case "Wednesday": photo = photoArray[2]; subjectMatter = subMatArray[1]; break;
-    case "Thursday": photo = photoArray[3]; subjectMatter = subMatArray[1]; break;
-    case "Friday": photo = photoArray[4]; subjectMatter = subMatArray[2]; break;
-    case "Saturday": photo = photoArray[5]; subjectMatter = subMatArray[2]; break;
-
-  };
-
-  let data = (await axios.get(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${subjectMatter}?key=${key}`)).data.values;
-
-  data = data.slice(1).map(item => {
-    return {
-      id: item[0],
-      subMatter: item[1],
-      majType: item[2],
-      item: item[3],
-      photo: photo,
-      answer: item[4],
-      rationale: item[5],
-    };
-  });
-
-  return getAll ? data : data[getRandomInt(0, data.length - 1)];
-
-};
-
-exports.sendLETData = async () => {
-
-  const {
-    getLETData,
-    getAccurateDate,
-    publishFBPost,
-    publishFBComment,
-    sendMessage,
-    fancyText
-  } = this;
-  let data = await getLETData();
-  const shorthand = data.subMatter === "General Education" ? "GenEd" : data.subMatter === "Professional Education" ? "ProfEd" : data.subMatter;
-
-  // posting to Facebook page
-  const post = await publishFBPost(pageId, `💡 #${shorthand}${getAccurateDate("dayWord")} | ${fancyText(data.item, 0)}\n\n` +
-    "Ano pang hinihintay ninyo, preservice teachers? #LETsReview and comment the correct answer! 🚀✨\n\n" +
-    `${fancyText("Note:", 2)} ${fancyText("The correct answer will be revealed after one (1) hour.", 1)}`, data.photo);
-
-  data.postId = post;
-  
-  await publishFBComment(pageId, data.postId, fancyText("How to answer?", 0) +
-    "\n\n❎ A. Ito ang sagot\n❎ A.\n❎ A\n❎ a\n✅ Snorlax Dela Fuentes-A\n✅ Snorlax Dela Fuentes-a");
-
-  // auditing logs to Discord
-  // GREEN >> posted, answer not revealed
-  // RED >> posted and answer is revealed
-  await sendMessage(pubPostsChanId, {
-    embeds: [
-      {
-        title: `GREEN_${data.id}`,
-        description: JSON.stringify(data),
-        footer: {
-          text: `${getAccurateDate("dayWord")}_${getAccurateDate("unix")}`
-        }
-      }
-    ]
-  });
-
-};
-
-exports.revealLETAnswer = async () => {
-
-  const {
-    sendMessage,
-    publishFBComment,
-    deleteMessage,
-    getMessageWithTitle,
-    getAccurateDate,
-    getFBComments,
-    toMilitaryTime,
-    fancyText
-  } = this;
-  const message = await getMessageWithTitle("GREEN", pubPostsChanId);
-
-  if (message.count === 0) return;
-
-  const embed = message.data.embeds[0];
-  const data = JSON.parse(embed.description);
-  const today = getAccurateDate("unix");
-  const targetDate = parseInt(embed.footer.text.split("_")[1]) + 60; // seconds
-
-  if (today < targetDate) return;
-
-  const comments = await getFBComments(pageId, data.postId);
-
-  await publishFBComment(pageId, data.postId, 
-    `The correct answer is: ${fancyText(data.answer, 0)}! ✨\n\n` +
-    "Bakit? 🤔 Here\'s why:\n\n" +
-    fancyText(data.rationale, 0) + "😲");
-  
-  comments.forEach(async comment => {
-    
-    const answer = comment.message.split("-");
-
-    await publishFBComment(pageId, data.postId, data.answer.toLowerCase() === answer[answer.length - 1].toLowerCase() ? "✅" : "❎", comment.id.split("_")[1]);
-
-  });
-
-  await sendMessage(pubPostsChanId, {
-    embeds: [
-      {
-        title: `RED_${embed.title.split("_")[1]}`,
-        description: JSON.stringify(data),
-        footer: {
-          text: embed.footer.text
-        }
-      }
-    ]
-  });
-
-  await deleteMessage(pubPostsChanId, message.data.id);
 
 };
