@@ -107,8 +107,14 @@ exports.getAccurateDate = (element, date = Date.now()) => {
     case "monthNumber": output = monthEnum[date[1]]; break;
     case "dayNumber": output = parseInt(date[2].replace(",", ""), 10); break;
     case "year": output = parseInt(date[3], 10); break;
+    case "m/d/y": output = monthEnum[date[1]] + "/" + parseInt(date[2].replace(",", ""), 10) + "/" + parseInt(date[3], 10); break;
+    case "m-d-y": output = monthEnum[date[1]] + "-" + parseInt(date[2].replace(",", ""), 10) + "-" + parseInt(date[3], 10); break;
+    case "date": output = date[1] + " " + parseInt(date[2].replace(",", ""), 10) + ", " + parseInt(date[3], 10); break;
     case "time": output = date[5] + " " + date[6]; break;
-    case "unix": output = Math.floor(newDate.getTime() / 1000) - (60 * 60 * 3);
+    case "hour": output = date[5].split(":")[0] + " " + date[6]; break;
+    case "militaryTime": output = this.toMilitaryTime(`${date[5].split(":").slice(0, 2)} ${date[6]}`); break;
+    case "unix": output = Math.floor(newDate.getTime() / 1000) - (60 * 60 * 3); break;
+    default: output = date.join(" ");
 
   };
 

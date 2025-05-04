@@ -1,24 +1,54 @@
 const { dc } = require("./clients");
+const { log } = require("./misc");
 
 exports.sendMessage = async (channelId, message) => {
 
   dc.channels.fetch(channelId)
     .then(channel => channel.send(message));
 
+  log.success("Discord", `Sent a message on ${channelId}.`);
+
 };
 
 exports.deleteMessage = async(channelId, messageId) => {
 
+  let index = 0;
   dc.channels.fetch(channelId)
     .then(channel => channel.messages.fetch())
     .then(messages => {
 
-      if (!messageId) messages.forEach(async message => {
-        await messages.delete(message.id);
-      });
-      else messages.first().channel.messages.delete(messageId);
+      if (!messageId) {
+        
+        messages.forEach(async message => {
+          dc.channels.fetch(channelId).then(chan => {
+            chan.messages.delete(message.id);
+          });
+          index++;
+        });
+
+      } else {
+
+        messages.first().channel.messages.delete(messageId);
+        index = 1;
+
+      };
+
+  })
+  .then(() => {
+
+    log.success("Discord", `Deleted ${index} message${index > 1 ? "s" : ""} on ${channelId}.`);
 
   });
+
+};
+
+exports.editMessageContent = async (channelId, messageId, message) => {
+
+  dc.channels.fetch(channelId)
+    .then(channel => channel.messages.fetch({ limit: 1, around: messageId }))
+    .then(messages => messages.first().edit(message));
+
+  log.success("Discord", `Edited message #${messageId} on ${channelId}.`);
 
 };
 
@@ -28,6 +58,16 @@ exports.getMessage = async (channelId) => {
     .then(channel => channel.messages.fetch({ limit: 1 }))
     .then(messages => {
       return messages.first();
+    });
+
+};
+
+exports.getAllMsgs = async (channelId) => {
+
+  return dc.channels.fetch(channelId)
+    .then(channel => channel.messages.fetch())
+    .then(messages => {
+      return messages;
     });
 
 };
