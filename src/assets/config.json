@@ -1,5 +1,5 @@
 {
     "onDevMode": true,
-    "refreshRate": 20,
+    "refreshRate": 30,
     "answerDuration": 60
 }

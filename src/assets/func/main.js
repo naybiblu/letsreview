@@ -77,6 +77,8 @@ exports.getAllQIds = async () => {
 
 exports.getLETData = async (getAll = false) => {
 
+    try {
+
     let subjectMatter;
     let photo;
     let filteredQs = [];
@@ -133,6 +135,8 @@ exports.getLETData = async (getAll = false) => {
     });
   
     return getAll ? filteredQs : filteredQs[getRandomInt(0, filteredQs.length - 1)];
+
+  } catch (e) {}
   
 };
   
@@ -147,7 +151,7 @@ exports.sendLETData = async () => {
 
     if (message.count > 0) return;
 
-    if (latestMsg || latestMsg?.embeds[0].title.split("_")[2] === assignQCode()) return;
+    if (latestMsg && latestMsg?.embeds[0].title.split("_")[2] === assignQCode()) return;
     
     let data = await getLETData();
 
@@ -336,8 +340,11 @@ exports.questionScheduler = async () => {
 
   let hour = getAccurateDate("militaryTime").split(":")[0];
   const activePosts = await getMessageWithTitle("GREEN", pubPostsChanId);
+  const questionsLeft = await getLETData(true);
 
-  if (getLETData(true).length <= 5 && activePosts.count === 0) await deleteMessage(pubPostsChanId);
+  console.log("getLETData(true).length: ", questionsLeft?.length);
+  console.log("activePosts.count: ", activePosts.count);
+  if (questionsLeft?.length === 5 && activePosts.count === 0) await deleteMessage(pubPostsChanId);
 
   switch (hour) {
 

@@ -13,7 +13,8 @@ const {
   deleteMessage,
 } = require("./dc");
 const {
-  questionScheduler
+  questionScheduler,
+  getLETData
 } = require("./main");
 const { model } = require("./../db/models/user");
 

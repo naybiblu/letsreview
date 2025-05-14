@@ -1,0 +1,46 @@
+name: Deploy to Discloud
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout your repository code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # Step 3: Install dependencies (including discloud.app)
+      - name: Install discloud.app library
+        run: npm install discloud.app
+
+      # Step 4: Create ZIP file for Discloud
+      - name: Create ZIP file
+        run: |
+          # This command zips the current directory's content into app.zip
+          # Exclude .git, .github, node_modules (if Discloud installs them or they are not needed for runtime)
+          # and the zip file itself to avoid recursion if run multiple times.
+          zip -r app.zip . -x ".git/*" ".github/*" "node_modules/*" "app.zip" ".scripts/*"
+          echo "Created app.zip"
+
+      # Step 5: Deploy to Discloud using the Node.js script
+      - name: Deploy to Discloud
+        env:
+          DISCLOUD_TOKEN: ${{ secrets.DISCLOUD_TOKEN }}
+          DISCLOUD_APPID: ${{ secrets.DISCLOUD_APPID }}
+        run: node .scripts/dc-commit.js
+
+      # Optional: Clean up ZIP file
+      - name: Clean up ZIP file
+        if: always() # Ensure this runs even if previous steps fail
+        run: rm -f app.zip
