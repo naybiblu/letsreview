@@ -1,5 +1,5 @@
 // .scripts/discloud-upload.js
-const { Discloud } = require("discloud.app");
+const { discloud } = require("discloud.app");
 const fs = require("fs");
 const path = require("path");
 
@@ -24,7 +24,7 @@ async function uploadToDiscloud() {
   }
 
   // Initialize Discloud with your API token
-  const discloud = new Discloud({ token: apiToken });
+  await discloud.login(apiToken);
 
   console.log(`Starting upload of ${zipFilePath} to Discloud app ID: ${appId}...`);
 
