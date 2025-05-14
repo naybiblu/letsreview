@@ -33,10 +33,11 @@ async function uploadToDiscloud() {
     const fileName = path.basename(zipFilePath);
 
     const result = await discloud.apps.update(appId, {
-      file: {
+      /*file: {
         data: fileBuffer,
         name: fileName, // e.g., "app.zip"
-      },
+      },*/
+      file: zipFilePath
     });
 
     console.log("Discloud API Response:", JSON.stringify(result, null, 2));
