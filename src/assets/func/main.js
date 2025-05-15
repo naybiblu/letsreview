@@ -91,10 +91,7 @@ exports.getLETData = async (getAll = false) => {
       "https://preview.redd.it/lets-review-online-assets-ver-2-0-v0-cc5575lj9eue1.png?width=1080&crop=smart&auto=webp&s=1397344ea466c83341ada94c4312f1a682881ac9",
     ];
   
-    const subjMatArray = onDevMode ? [
-      "GenEd",
-      "ProfEd"
-    ] : [
+    const subjMatArray = [
       "General Education",
       "Professional Education"
     ];
