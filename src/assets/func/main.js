@@ -67,11 +67,18 @@ exports.assignQCode = (code = getAccurateDate("militaryTime").split(":")[0]) => 
 
 };
 
-exports.getAllQIds = async () => {
+exports.getAllQIds = async (category = 0) => {
 
   let msgs = await getAllMsgs(pubPostsChanId);
+  let qIds = msgs.map(msg => msg.embeds[0].title.split("_")[1]);
 
-  return msgs.map(msg => msg.embeds[0].title.split("_")[1]);
+  switch (category) {
+    case 1: qIds = qIds.filter(id => id.startsWith("GENED")); break;
+    case 2: qIds = qIds.filter(id => id.startsWith("PROFED")); break;
+    default: qIds = qIds;
+  }
+
+  return qIds;
 
 };
 
@@ -89,6 +96,7 @@ exports.getLETData = async (getAll = false) => {
       "https://preview.redd.it/lets-review-online-assets-ver-2-0-v0-b0qqd8lj9eue1.png?width=1080&crop=smart&auto=webp&s=962471a579887f344ff1e9ffa059617d20e05b17",
       "https://preview.redd.it/lets-review-online-assets-ver-2-0-v0-akrdi6lj9eue1.png?width=1080&crop=smart&auto=webp&s=028fb6f1aa50877875edae66db82a0986a72ac5e",
       "https://preview.redd.it/lets-review-online-assets-ver-2-0-v0-cc5575lj9eue1.png?width=1080&crop=smart&auto=webp&s=1397344ea466c83341ada94c4312f1a682881ac9",
+      "https://preview.redd.it/lets-review-online-assets-ver-2-0-v0-j1mpl5lj9eue1.png?width=1080&crop=smart&auto=webp&s=1618a9fc476462405998acfba9df2d4de8968dab"
     ];
   
     const subjMatArray = [
@@ -96,7 +104,7 @@ exports.getLETData = async (getAll = false) => {
       "Professional Education"
     ];
 
-    switch (onDevMode ? "Monday" : getAccurateDate("dayWord")) {
+    switch (getAccurateDate("dayWord")) {
   
       case "Monday": photo = photoArray[0]; subjectMatter = subjMatArray[0]; break;
       case "Tuesday": photo = photoArray[1]; subjectMatter = subjMatArray[0]; break;
@@ -104,13 +112,13 @@ exports.getLETData = async (getAll = false) => {
       case "Thursday": photo = photoArray[3]; subjectMatter = subjMatArray[1]; break;
       case "Friday": photo = photoArray[4]; subjectMatter = subjMatArray[1]; break;
       case "Saturday": photo = photoArray[5]; subjectMatter = subjMatArray[1]; break;
-
+      //default: photo = photoArray[6]; subjectMatter = "Overall";
     };
 
     if (!subjectMatter) return;
   
     let data = (await axios.get(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${subjectMatter}?key=${key}`)).data.values;
-    let existingQIds = await this.getAllQIds();
+    let existingQIds = await this.getAllQIds(subjectMatter === "General Education" ? 1 : 2);
 
     data = data.slice(1).map(item => {
       return {
@@ -331,17 +339,34 @@ exports.updateLeaderBoard = async (top = 10) => {
 
 };
 
+exports.extraQuestion = async () => {
+
+  // TODO: processes a random question at random hour every Sunday (happens 15% chance)
+
+};
+
 exports.questionScheduler = async () => {
 
-  const { getLETData, sendLETData, sendLeaderBoard, revealLETAnswer, updateLeaderBoard } = this;
+  const { 
+    getLETData, 
+    sendLETData, 
+    sendLeaderBoard, 
+    revealLETAnswer, 
+    updateLeaderBoard 
+  } = this;
 
   let hour = getAccurateDate("militaryTime").split(":")[0];
   const activePosts = await getMessageWithTitle("GREEN", pubPostsChanId);
   const questionsLeft = await getLETData(true);
+  const msgs = await getAllMsgs(pubPostsChanId);
+
 
   console.log("getLETData(true).length: ", questionsLeft?.length);
   console.log("activePosts.count: ", activePosts.count);
-  if (questionsLeft?.length === 5 && activePosts.count === 0) await deleteMessage(pubPostsChanId);
+  if (questionsLeft?.length === 5 && activePosts.count === 0) questionsLeft
+    .forEach(async q => {
+      await deleteMessage(pubPostsChanId, msgs.filter(m => m.embeds[0].title.split("_")[1] === q.id).first().id)
+    });
 
   switch (hour) {
 
