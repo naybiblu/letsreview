@@ -131,13 +131,15 @@ exports.getLETData = async (getAll = false) => {
       };
     });
     
-    data.forEach(q => {
+    /*data.forEach(q => {
 
       if (existingQIds.includes(q.id)) return;
 
       filteredQs.push(q);
 
-    });
+    });*/
+
+    filteredQs = data.filter(q => !existingQIds.includes(q.id) && q.id.startsWith(subjectMatter === "General Education" ? "GENED" : "PROFED"));
   
     return getAll ? filteredQs : filteredQs[getRandomInt(0, filteredQs.length - 1)];
 
@@ -242,7 +244,7 @@ exports.revealLETAnswer = async () => {
     await publishFBComment(fbId, data.postId, 
       `Time's up! ⏰ The correct answer is: ${fancyText(data.answer, 0)}! ✨\n\n` +
       "Bakit? 🤔 Here\'s why:\n\n" +
-      fancyText(data.rationale, 0) + "😲");
+      fancyText(data.rationale, 0) + " 😲");
     
     // sort correct answers
     comments.forEach(async (comment, i) => {
@@ -369,8 +371,8 @@ exports.questionScheduler = async () => {
     });
 
   switch (hour) {
-
-    case "9": // 9 AM
+ 
+    case "9": // 9 AM 
     case "11": // 11 AM
     case "13": // 1 PM
     case "15": // 3 PM
@@ -379,8 +381,9 @@ exports.questionScheduler = async () => {
 
   };
 
+  if (hour === "9") await sendLeaderBoard();
+
   await revealLETAnswer();
   await updateLeaderBoard()
-  await sendLeaderBoard();
 
 };
