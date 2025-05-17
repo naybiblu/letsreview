@@ -82,7 +82,7 @@ exports.getAllQIds = async (category = 0) => {
 
 };
 
-exports.getLETData = async (getAll = false) => {
+exports.getLETData = async (getAll = false, noFilter = false) => {
 
     try {
 
@@ -130,17 +130,10 @@ exports.getLETData = async (getAll = false) => {
         rationale: item[4],
       };
     });
-    
-    /*data.forEach(q => {
 
-      if (existingQIds.includes(q.id)) return;
+    if (!noFilter) filteredQs = data.filter(q => !existingQIds.includes(q.id) && q.id.startsWith(subjectMatter === "General Education" ? "GENED" : "PROFED"));
+    else filteredQs = data.filter(q => q.id.startsWith(subjectMatter === "General Education" ? "GENED" : "PROFED"))
 
-      filteredQs.push(q);
-
-    });*/
-
-    filteredQs = data.filter(q => !existingQIds.includes(q.id) && q.id.startsWith(subjectMatter === "General Education" ? "GENED" : "PROFED"));
-  
     return getAll ? filteredQs : filteredQs[getRandomInt(0, filteredQs.length - 1)];
 
   } catch (e) {}
@@ -361,14 +354,14 @@ exports.questionScheduler = async () => {
   const activePosts = await getMessageWithTitle("GREEN", pubPostsChanId);
   const questionsLeft = await getLETData(true);
   const msgs = await getAllMsgs(pubPostsChanId);
-  const questionsTotal = (await axios.get(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${questionsLeft[0].id.startsWith("GENED") ? "General Education" : "Professional Education"}?key=${key}`)).data.values.slice(1).map(item => item[0]);
+  const questionsTotal = await getLETData(true, true);
 
 
-  console.log("getLETData(true).length: ", questionsLeft?.length);
-  console.log("activePosts.count: ", activePosts.count);
+  console.log(`Questions left for ` + questionsLeft[0]?.subMatter + ": ", questionsLeft?.length + " / " + questionsTotal?.length);
+  console.log("Active FB posts :", activePosts.count);
   if (questionsLeft?.length === 5 && activePosts.count === 0) questionsTotal
     .forEach(async q => {
-      const check = msgs.filter(m => m.embeds[0].title.split("_")[1] === q).first()?.id;
+      const check = msgs.filter(m => m.embeds[0].title.split("_")[1] === q.id).first()?.id;
       if (!check) return;
       await deleteMessage(pubPostsChanId, check);
     });
