@@ -82,7 +82,7 @@ exports.getAllQIds = async (category = 0) => {
 
 };
 
-exports.getLETData = async (getAll = false, noFilter = false) => {
+exports.getLETData = async (getAll = false, noFilter = false, getOverall = false) => {
 
     try {
 
@@ -96,7 +96,6 @@ exports.getLETData = async (getAll = false, noFilter = false) => {
       "https://preview.redd.it/lets-review-online-assets-ver-2-0-v0-b0qqd8lj9eue1.png?width=1080&crop=smart&auto=webp&s=962471a579887f344ff1e9ffa059617d20e05b17",
       "https://preview.redd.it/lets-review-online-assets-ver-2-0-v0-akrdi6lj9eue1.png?width=1080&crop=smart&auto=webp&s=028fb6f1aa50877875edae66db82a0986a72ac5e",
       "https://preview.redd.it/lets-review-online-assets-ver-2-0-v0-cc5575lj9eue1.png?width=1080&crop=smart&auto=webp&s=1397344ea466c83341ada94c4312f1a682881ac9",
-      "https://preview.redd.it/lets-review-online-assets-ver-2-0-v0-j1mpl5lj9eue1.png?width=1080&crop=smart&auto=webp&s=1618a9fc476462405998acfba9df2d4de8968dab"
     ];
   
     const subjMatArray = [
@@ -117,7 +116,7 @@ exports.getLETData = async (getAll = false, noFilter = false) => {
 
     if (!subjectMatter) return;
   
-    let data = (await axios.get(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${subjectMatter}?key=${key}`)).data.values;
+    let data = (await axios.get(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${getOverall ? "Overall" : subjectMatter}?key=${key}`)).data.values;
     let existingQIds = await this.getAllQIds(subjectMatter === "General Education" ? 1 : 2);
 
     data = data.slice(1).map(item => {
@@ -175,7 +174,7 @@ exports.sendLETData = async () => {
     await sendMessage(pubPostsChanId, {
       embeds: [
         {
-          title: `GREEN_${data.id}_${this.assignQCode()}`,
+          title: `GREEN_${data.id}_${assignQCode()}`,
           description: JSON.stringify(data),
           footer: {
             text: `${getAccurateDate("dayWord")}_${getAccurateDate("unix")}`
@@ -336,7 +335,46 @@ exports.updateLeaderBoard = async (top = 10) => {
 
 exports.extraQuestion = async () => {
 
-  // TODO: processes a random question at random hour every Sunday (happens 15% chance)
+  const {
+      assignQCode,
+      getLETData,
+    } = this;
+
+  const chance = getRandomInt(1, 100);
+  
+  if (getAccurateDate("dayWord") !== "Sunday") return;
+  if (getAccurateDate("militaryTime").split(":")[0] !== "11") return;
+
+  console.log("Chance for Extra Question: ", chance);
+
+  if (![15, 17].includes(chance)) return;
+
+  const data = await getLETData(false, false, true);
+
+  if (!data) return;
+
+  const post = await publishFBPost(fbId, `💥 #ExtraExtra | Today is a special day, dahil may bagong question tayong sasagutan kahit Sunday! 😲 Here's the question:\n\n` +
+    `${fancyText(data.item, 0)}\n\nAno pang hinihintay ninyo, preservice teachers? #LETsReview and comment the correct answer! 🚀✨\n\n` +
+    `${fancyText("Note:", 2)} ${fancyText("The correct answer will be revealed after one (1) hour.", 1)}`, 
+    "https://preview.redd.it/lets-review-online-assets-ver-2-0-v0-j1mpl5lj9eue1.png?width=1080&crop=smart&auto=webp&s=1618a9fc476462405998acfba9df2d4de8968dab"
+  );
+  
+  data.postId = post;
+    
+  await publishFBComment(fbId, data.postId, fancyText("How to answer?", 0) +
+    "\n\n❎ A\n❎ c\n❎ A.\n❎ JamesPogi _ A\n✅ JamesPogi_A\n✅ JamesPogi_a");
+  
+  await sendMessage(pubPostsChanId, {
+    embeds: [
+      {
+        title: `GREEN_${data.id}`,
+        description: JSON.stringify(data),
+        footer: {
+          text: `${getAccurateDate("dayWord")}_${getAccurateDate("unix")}`
+        }
+      }
+    ]
+  });
 
 };
 
@@ -347,7 +385,8 @@ exports.questionScheduler = async () => {
     sendLETData, 
     sendLeaderBoard, 
     revealLETAnswer, 
-    updateLeaderBoard 
+    updateLeaderBoard,
+    extraQuestion
   } = this;
 
   let hour = getAccurateDate("militaryTime").split(":")[0];
@@ -358,7 +397,7 @@ exports.questionScheduler = async () => {
 
 
   console.log(`Questions left for ` + questionsLeft[0]?.subMatter + ": ", questionsLeft?.length + " / " + questionsTotal?.length);
-  console.log("Active FB posts :", activePosts.count);
+  console.log("Active FB posts:", activePosts.count);
   if (questionsLeft?.length === 5 && activePosts.count === 0) questionsTotal
     .forEach(async q => {
       const check = msgs.filter(m => m.embeds[0].title.split("_")[1] === q.id).first()?.id;
@@ -381,5 +420,6 @@ exports.questionScheduler = async () => {
 
   await revealLETAnswer();
   await updateLeaderBoard()
+  await extraQuestion();
 
 };
