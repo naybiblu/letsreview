@@ -361,13 +361,16 @@ exports.questionScheduler = async () => {
   const activePosts = await getMessageWithTitle("GREEN", pubPostsChanId);
   const questionsLeft = await getLETData(true);
   const msgs = await getAllMsgs(pubPostsChanId);
+  const questionsTotal = (await axios.get(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${questionsLeft[0].id.startsWith("GENED") ? "General Education" : "Professional Education"}?key=${key}`)).data.values.slice(1).map(item => item[0]);
 
 
   console.log("getLETData(true).length: ", questionsLeft?.length);
   console.log("activePosts.count: ", activePosts.count);
-  if (questionsLeft?.length === 5 && activePosts.count === 0) questionsLeft
+  if (questionsLeft?.length === 5 && activePosts.count === 0) questionsTotal
     .forEach(async q => {
-      await deleteMessage(pubPostsChanId, msgs.filter(m => m.embeds[0].title.split("_")[1] === q.id).first().id)
+      const check = msgs.filter(m => m.embeds[0].title.split("_")[1] === q).first()?.id;
+      if (!check) return;
+      await deleteMessage(pubPostsChanId, check);
     });
 
   switch (hour) {
