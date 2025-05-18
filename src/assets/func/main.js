@@ -339,15 +339,11 @@ exports.updateLeaderBoard = async (top = 10) => {
 
 exports.extraQuestion = async () => {
 
-  const {
-      assignQCode,
-      getLETData,
-    } = this;
-
   const chance = getRandomInt(1, 100);
+  const today = getAccurateDate("dayWord");
   
   if (getAccurateDate("dayWord") !== "Sunday") return;
-  if (getAccurateDate("militaryTime").split(":")[0] !== "11") return;
+  if (parseInt(getAccurateDate("militaryTime").split(":")[0]) < 11) return;
 
   console.log("Chance for Extra Question: ", chance);
 
@@ -357,7 +353,11 @@ exports.extraQuestion = async () => {
   
   if (message.count === 0) return;
 
-  const data = await getLETData(false, false, true);
+  const checkIfPosted = (await getMessage(pubPostsChanId)).embeds[0].footer.text.includes(today);
+
+  if (checkIfPosted) return;
+
+  const data = await this.getLETData(false, false, true);
 
   if (!data) return;
 
