@@ -396,7 +396,7 @@ exports.questionScheduler = async () => {
   const questionsTotal = await getLETData(true, true);
 
 
-  console.log(`Questions left for ` + questionsLeft[0]?.subMatter + ": ", questionsLeft?.length + " / " + questionsTotal?.length);
+  console.log("Questions left to be posted :", questionsLeft?.length + " / " + questionsTotal?.length);
   console.log("Active FB posts:", activePosts.count);
   if (questionsLeft?.length === 5 && activePosts.count === 0) questionsTotal
     .forEach(async q => {
