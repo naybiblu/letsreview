@@ -138,8 +138,6 @@ exports.getStateOfTheDay = (time = Date.now()) => {
   else if (hour < 18) output = { en: "afternoon", tl: "hapon" };
   else output = { en: "evening", tl: "gabi" };
 
-  console.log(hour === 12, hour, time)
-
   return output;
 
 };
