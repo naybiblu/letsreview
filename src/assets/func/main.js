@@ -353,6 +353,10 @@ exports.extraQuestion = async () => {
 
   if (![15, 17].includes(chance)) return;
 
+  const message = await getMessageWithTitle("GREEN", pubPostsChanId);
+  
+  if (message.count === 0) return;
+
   const data = await getLETData(false, false, true);
 
   if (!data) return;
