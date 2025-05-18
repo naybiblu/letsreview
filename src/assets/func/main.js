@@ -343,7 +343,7 @@ exports.extraQuestion = async () => {
   const today = getAccurateDate("dayWord");
   
   if (getAccurateDate("dayWord") !== "Sunday") return;
-  if (parseInt(getAccurateDate("militaryTime").split(":")[0]) < 11) return;
+  if (getAccurateDate("militaryTime").split(":")[0] !== "11") return;
 
   console.log("Chance for Extra Question: ", chance);
 
