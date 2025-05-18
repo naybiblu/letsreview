@@ -17,6 +17,7 @@ const {
     getMessage,
     getAllMsgs,
     editMessageContent,
+    getSimilarFooterCount,
 } = require("./dc.js");
 const {
   onDevMode,
@@ -187,11 +188,14 @@ exports.sendLETData = async () => {
 
 exports.sendLeaderBoard = async () => {
 
-  if (getAccurateDate("dayWord") !== "Sunday") return;
+  const today = getAccurateDate("dayWord");
 
-  const latestMsg = await getMessage(checkPointChanId);
+  if (today !== "Sunday") return;
+  if (parseInt(getAccurateDate("militaryTime").split(":")[0]) < 9) return;
 
-  if (latestMsg && latestMsg?.embeds[0].footer.text.split("_")[1] === getAccurateDate("date")) return;
+  const check = await getSimilarFooterCount(`${today}_${getAccurateDate("date")}`, checkPointChanId)
+
+  if (check) return;
 
   const image = "https://preview.redd.it/lets-review-checkpoint-v0-e2ns2ie54qye1.png?width=1080&crop=smart&auto=webp&s=f517f70b3f7425f18d183bd2a811dfe8618fccc3";
   const leaderBoard = await this.updateLeaderBoard();
@@ -396,7 +400,7 @@ exports.questionScheduler = async () => {
   const questionsTotal = await getLETData(true, true);
 
 
-  console.log("Questions left to be posted :", questionsLeft?.length + " / " + questionsTotal?.length);
+  console.log("Questions left to be posted :", getAccurateDate("dayWord") === "Sunday" ? "No questions for today" : questionsLeft?.length + " / " + questionsTotal?.length);
   console.log("Active FB posts:", activePosts.count);
   if (questionsLeft?.length === 5 && activePosts.count === 0) questionsTotal
     .forEach(async q => {
@@ -416,9 +420,8 @@ exports.questionScheduler = async () => {
 
   };
 
-  if (hour === "9") await sendLeaderBoard();
-
   await revealLETAnswer();
+  await sendLeaderBoard();
   await updateLeaderBoard()
   await extraQuestion();
 
