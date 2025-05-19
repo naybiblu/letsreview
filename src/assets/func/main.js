@@ -250,7 +250,7 @@ exports.revealLETAnswer = async () => {
         const [ username, answer ] = comment.message.split("_");
         comment.username = username;
 
-        if (data.answer.toLowerCase() !== answer.toLowerCase()) return await publishFBComment(fbId, data.postId, "❎ Sorry, baks... mali ka!", comment.id.split("_")[1]);
+        if (data.answer.toLowerCase().split(".")[0] !== answer.toLowerCase()) return await publishFBComment(fbId, data.postId, "❎ Sorry, baks... mali ka!", comment.id.split("_")[1]);
             
         correctAnsArray.push(comment); 
   
