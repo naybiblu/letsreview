@@ -153,7 +153,7 @@ exports.sendLETData = async () => {
 
     const check = await getSimilarFooterCount(`${getAccurateDate("dayWord")}_${getAccurateDate("date")}`, pubPostsChanId);
 
-    if (latestMsg && latestMsg?.embeds[0].title.split("_")[2] === assignQCode() && check) return;
+    if (latestMsg && latestMsg?.embeds[0]?.title?.split("_")[2] === assignQCode() && check) return;
     
     let data = await getLETData();
 
