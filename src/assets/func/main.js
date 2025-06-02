@@ -151,7 +151,9 @@ exports.sendLETData = async () => {
 
     if (message.count > 0) return;
 
-    if (latestMsg && latestMsg?.embeds[0].title.split("_")[2] === assignQCode()) return;
+    const check = await getSimilarFooterCount(`${getAccurateDate("dayWord")}_${getAccurateDate("date")}`, pubPostsChanId);
+
+    if (latestMsg && latestMsg?.embeds[0].title.split("_")[2] === assignQCode() && check) return;
     
     let data = await getLETData();
 
@@ -193,7 +195,7 @@ exports.sendLeaderBoard = async () => {
   if (today !== "Sunday") return;
   if (parseInt(getAccurateDate("militaryTime").split(":")[0]) < 9) return;
 
-  const check = await getSimilarFooterCount(`${today}_${getAccurateDate("date")}`, checkPointChanId)
+  const check = await getSimilarFooterCount(`${today}_${getAccurateDate("date")}`, checkPointChanId);
 
   if (check) return;
 
@@ -406,6 +408,7 @@ exports.questionScheduler = async () => {
 
   console.log("Questions left to be posted :", getAccurateDate("dayWord") === "Sunday" ? "No questions for today" : questionsLeft?.length + " / " + questionsTotal?.length);
   console.log("Active FB posts:", activePosts.count);
+  console.log("Hour:", hour)
   if (questionsLeft?.length === 5 && activePosts.count === 0) questionsTotal
     .forEach(async q => {
       const check = msgs.filter(m => m.embeds[0].title.split("_")[1] === q.id).first()?.id;
