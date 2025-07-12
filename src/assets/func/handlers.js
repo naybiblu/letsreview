@@ -5,6 +5,7 @@ const {
 } = process.env;
 require("dotenv").config();
 const { dc } = require("./clients");
+const { indexAR } = require("./../../../acad-reminder/index");
 const { 
   log, 
   mongo,
@@ -35,7 +36,16 @@ exports.connectDB = async () => {
 
 };
 
+exports.repeatables = async () => {
+
+  await questionScheduler();
+  await indexAR();
+
+};
+
 exports.connectDC = async () => {
+
+  const { repeatables } = this;
 
   dc
     .on("ready", async () => {
@@ -47,13 +57,14 @@ exports.connectDC = async () => {
 
       try {
 
-        await questionScheduler();
+        await repeatables();
 
         setInterval(async () => {
           
-          await questionScheduler();
+          await repeatables();
         
         }, require("./../config.json").refreshRate * 1000);
+
 
       } catch (err) { console.error(err); }
 
