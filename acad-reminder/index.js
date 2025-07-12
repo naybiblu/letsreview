@@ -2,6 +2,7 @@ const { getAccurateDate } = require("./../src/assets/func/misc");
 const { getSimilarFooterCount } = require("./../src/assets/func/dc");
 const { sendBdayReminder } = require("./func");
 const { DISCORD_ARB_CHANNELID: bdayChanId } = process.env;
+require("dotenv").config();
 
 exports.indexAR = async () => {
     let time = getAccurateDate("militaryTime");
