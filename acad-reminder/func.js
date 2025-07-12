@@ -11,6 +11,7 @@ const {
     DISCORD_ARC_CHANNELID: classesChanId,
     DISCORD_ARB_CHANNELID: bdayChanId,
 } = process.env;
+require("dotenv").config();
 
 exports.getBdayData = async (id) => {
 
