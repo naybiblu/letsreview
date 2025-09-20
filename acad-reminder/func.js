@@ -44,8 +44,6 @@ exports.sendBdayReminder = async () => {
     const today = getAccurateDate("date");
     const pluralization = bdayCelebrants.length > 1 ? "s" : "";
 
-    console.log(bdayCelebrants)
-
     if (bdayCelebrants.length <= 0) return log.success(
         "Eclaro Academy, Inc.",
         "There are no birthday celebrants for today."

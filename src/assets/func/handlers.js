@@ -48,7 +48,7 @@ exports.connectDC = async () => {
   const { repeatables } = this;
 
   dc
-    .on("ready", async () => {
+    .on("clientReady", async () => {
 
       log.success(
         "Discord", 
