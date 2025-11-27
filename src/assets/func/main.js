@@ -72,7 +72,7 @@ exports.getAllQIds = async (category = 0) => {
 
   let msgs = await getAllMsgs(pubPostsChanId);
   let qIds = msgs.map(msg => msg.embeds[0].title.split("_")[1]);
-
+  
   switch (category) {
     case 1: qIds = qIds.filter(id => id.startsWith("GENED")); break;
     case 2: qIds = qIds.filter(id => id.startsWith("PROFED")); break;
@@ -115,11 +115,11 @@ exports.getLETData = async (getAll = false, noFilter = false, getOverall = false
       //default: photo = photoArray[6]; subjectMatter = "Overall";
     };
 
-    if (!subjectMatter) return;
+    if (!subjectMatter) return; 
   
     let data = (await axios.get(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${getOverall ? "Overall" : subjectMatter}?key=${key}`)).data.values;
     let existingQIds = await this.getAllQIds(subjectMatter === "General Education" ? 1 : 2);
-
+    
     data = data.slice(1).map(item => {
       return {
         id: item[0],
